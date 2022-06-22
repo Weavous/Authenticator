@@ -1,0 +1,81 @@
+version: '3'
+
+networks:
+  laravel:
+    driver: bridge
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    ports:
+      - 8080:80
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - laravel
+
+  mysql:
+    image: mysql:latest
+    restart: unless-stopped
+    tty: true
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./mysql:/var/lib/mysql
+    networks:
+      - laravel
+
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - laravel
+
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    networks:
+      - laravel
+
+  composer:
+    build:
+      context: .
+      dockerfile: docker/composer/Dockerfile
+    working_dir: /var/www/html
+    entrypoint: ['composer', '--ignore-platform-reqs']
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - laravel
+
+  artisan:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    working_dir: /var/www/html
+    entrypoint: ['php', '/var/www/html/artisan']
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - laravel
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - 1025:1025
+      - 8025:8025
+    networks:
+      - laravel
