@@ -24,6 +24,6 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth:api')->group(function () {
         Route::put('update-credentials', [AuthController::class, 'update']);
-        Route::put('delete-user', [AuthController::class, 'destroy']);
+        Route::delete('delete-user', [AuthController::class, 'destroy']);
     });
 });
